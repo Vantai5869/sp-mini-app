@@ -1,24 +1,95 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
 
-// Đổi mấy giá trị này, commit, push lên GitHub -> Vercel tự deploy lại
-// -> mở app mobile lên, vào lại mini app này là thấy thay đổi ngay.
-const ACCENT_COLOR = '#006af5';
-const TITLE = 'SP Mini App';
-const SUBTITLE = 'Sửa file src/App.tsx để đổi giao diện này';
+type MiniAppState = {
+  title: string;
+  subtitle: string;
+  accentColor: string;
+};
 
 function App() {
-  const [count, setCount] = useState(0);
+  const [state, setState] = useState<MiniAppState | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<MiniAppState | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/state')
+      .then((r) => r.json())
+      .then((data: MiniAppState) => {
+        setState(data);
+        setDraft(data);
+      });
+  }, []);
+
+  async function save() {
+    if (!draft) return;
+    setSaving(true);
+    await fetch('/api/state', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(draft),
+    });
+    setState(draft);
+    setSaving(false);
+    setEditing(false);
+  }
+
+  if (!state || !draft) {
+    return (
+      <div className="screen">
+        <p>Đang tải...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="screen" style={{ '--accent': ACCENT_COLOR } as React.CSSProperties}>
+    <div className="screen" style={{ '--accent': state.accentColor } as React.CSSProperties}>
       <div className="card">
-        <span className="badge">Đã deploy lúc {new Date().toLocaleString('vi-VN')}</span>
-        <h1>{TITLE}</h1>
-        <p>{SUBTITLE}</p>
-        <button className="counter" onClick={() => setCount((c) => c + 1)}>
-          Đã bấm {count} lần
-        </button>
+        <span className="badge">Tải từ server lúc {new Date().toLocaleTimeString('vi-VN')}</span>
+        <h1>{state.title}</h1>
+        <p>{state.subtitle}</p>
+
+        {editing ? (
+          <div className="form">
+            <label>
+              Tiêu đề
+              <input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
+            </label>
+            <label>
+              Mô tả
+              <textarea
+                value={draft.subtitle}
+                onChange={(e) => setDraft({ ...draft, subtitle: e.target.value })}
+              />
+            </label>
+            <label>
+              Màu chủ đạo
+              <input
+                type="color"
+                value={draft.accentColor}
+                onChange={(e) => setDraft({ ...draft, accentColor: e.target.value })}
+              />
+            </label>
+            <div className="row">
+              <button className="counter ghost" onClick={() => { setDraft(state); setEditing(false); }}>
+                Huỷ
+              </button>
+              <button className="counter" onClick={save} disabled={saving}>
+                {saving ? 'Đang lưu...' : 'Lưu'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button className="counter" onClick={() => setEditing(true)}>
+            Chỉnh sửa
+          </button>
+        )}
+
+        <p className="hint">
+          Sửa ở đây trên trình duyệt → Lưu → mở lại mini app trong supper app (kéo để reload) là thấy thay
+          đổi ngay, không cần deploy lại.
+        </p>
       </div>
     </div>
   );

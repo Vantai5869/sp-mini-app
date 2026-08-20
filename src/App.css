@@ -56,3 +56,65 @@
 .counter:active {
   opacity: 0.85;
 }
+
+.counter.ghost {
+  background: #eee;
+  color: #333;
+}
+
+.counter:disabled {
+  opacity: 0.6;
+}
+
+.form {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #444;
+}
+
+.form input,
+.form textarea {
+  font: inherit;
+  font-size: 14px;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  color: #111;
+}
+
+.form input[type='color'] {
+  padding: 2px;
+  height: 36px;
+  width: 56px;
+}
+
+.form textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.form .row {
+  display: flex;
+  gap: 8px;
+}
+
+.form .row .counter {
+  flex: 1;
+}
+
+.hint {
+  margin: 16px 0 0 !important;
+  font-size: 11px !important;
+  color: #999 !important;
+}
