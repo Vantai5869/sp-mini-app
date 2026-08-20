@@ -38,7 +38,7 @@ function App() {
   if (!state || !draft) {
     return (
       <div className="screen">
-        <p>Đang tải...</p>
+        <div className="spinner" />
       </div>
     );
   }
@@ -46,7 +46,19 @@ function App() {
   return (
     <div className="screen" style={{ '--accent': state.accentColor } as React.CSSProperties}>
       <div className="card">
-        <span className="badge">Tải từ server lúc {new Date().toLocaleTimeString('vi-VN')}</span>
+        <div className="glow" />
+
+        <div className="avatar">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" strokeWidth="2">
+            <path d="M13 2 L4 14 h6 l-1 8 9-12h-6z" strokeLinejoin="round" strokeLinecap="round" />
+          </svg>
+        </div>
+
+        <span className="badge">
+          <span className="dot" />
+          Live · cập nhật {new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+        </span>
+
         <h1>{state.title}</h1>
         <p>{state.subtitle}</p>
 
@@ -65,29 +77,37 @@ function App() {
             </label>
             <label>
               Màu chủ đạo
-              <input
-                type="color"
-                value={draft.accentColor}
-                onChange={(e) => setDraft({ ...draft, accentColor: e.target.value })}
-              />
+              <div className="color-row">
+                <input
+                  type="color"
+                  value={draft.accentColor}
+                  onChange={(e) => setDraft({ ...draft, accentColor: e.target.value })}
+                />
+                <span className="color-value">{draft.accentColor}</span>
+              </div>
             </label>
             <div className="row">
-              <button className="counter ghost" onClick={() => { setDraft(state); setEditing(false); }}>
+              <button
+                className="btn ghost"
+                onClick={() => {
+                  setDraft(state);
+                  setEditing(false);
+                }}>
                 Huỷ
               </button>
-              <button className="counter" onClick={save} disabled={saving}>
-                {saving ? 'Đang lưu...' : 'Lưu'}
+              <button className="btn primary" onClick={save} disabled={saving}>
+                {saving ? 'Đang lưu…' : 'Lưu thay đổi'}
               </button>
             </div>
           </div>
         ) : (
-          <button className="counter" onClick={() => setEditing(true)}>
+          <button className="btn primary" onClick={() => setEditing(true)}>
             Chỉnh sửa
           </button>
         )}
 
         <p className="hint">
-          Sửa ở đây trên trình duyệt → Lưu → mở lại mini app trong supper app (kéo để reload) là thấy thay
+          Sửa ở đây → Lưu → mở lại mini app trong supper app (kéo xuống hoặc bấm nút refresh) là thấy thay
           đổi ngay, không cần deploy lại.
         </p>
       </div>

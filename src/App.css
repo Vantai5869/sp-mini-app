@@ -4,117 +4,239 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 12%, white), white 60%);
+  background: radial-gradient(
+    circle at 50% 0%,
+    color-mix(in srgb, var(--accent, #006af5) 16%, white),
+    #f4f5f7 55%
+  );
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+.spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid #e2e2e2;
+  border-top-color: #999;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .card {
+  position: relative;
   width: 100%;
-  max-width: 360px;
+  max-width: 380px;
   background: #fff;
-  border-radius: 20px;
-  padding: 28px 24px;
+  border-radius: 24px;
+  padding: 32px 26px;
   text-align: center;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 20px 40px -12px color-mix(in srgb, var(--accent) 30%, transparent),
+    0 2px 8px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  animation: rise 0.35s ease-out;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.glow {
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 20%, transparent), transparent 70%);
+  pointer-events: none;
+}
+
+.avatar {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, var(--accent), color-mix(in srgb, var(--accent) 60%, black));
+  box-shadow: 0 8px 20px -6px color-mix(in srgb, var(--accent) 60%, transparent);
 }
 
 .badge {
-  display: inline-block;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 11px;
   font-weight: 600;
   color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, white);
+  background: color-mix(in srgb, var(--accent) 10%, white);
   border-radius: 999px;
-  padding: 4px 10px;
-  margin-bottom: 14px;
+  padding: 5px 12px 5px 10px;
+  margin-bottom: 16px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
 }
 
 .card h1 {
+  position: relative;
   margin: 0 0 8px;
-  font-size: 22px;
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
   color: #111;
 }
 
 .card p {
-  margin: 0 0 20px;
+  position: relative;
+  margin: 0 0 22px;
   font-size: 14px;
-  color: #666;
-  line-height: 1.4;
+  color: #6b6b6b;
+  line-height: 1.5;
 }
 
-.counter {
+.btn {
   border: none;
-  border-radius: 12px;
-  padding: 12px 20px;
+  border-radius: 13px;
+  padding: 13px 20px;
   font-size: 14px;
   font-weight: 700;
-  color: #fff;
-  background: var(--accent);
   cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
 }
 
-.counter:active {
-  opacity: 0.85;
+.btn:active {
+  transform: scale(0.97);
 }
 
-.counter.ghost {
-  background: #eee;
-  color: #333;
+.btn.primary {
+  color: #fff;
+  background: linear-gradient(160deg, var(--accent), color-mix(in srgb, var(--accent) 70%, black));
+  box-shadow: 0 6px 16px -4px color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
-.counter:disabled {
+.btn.ghost {
+  background: #f0f0f2;
+  color: #444;
+}
+
+.btn:disabled {
   opacity: 0.6;
+  transform: none;
 }
 
 .form {
+  position: relative;
   text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 14px;
+  margin-bottom: 22px;
 }
 
 .form label {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   font-size: 12px;
-  font-weight: 600;
-  color: #444;
+  font-weight: 700;
+  color: #555;
 }
 
-.form input,
+.form input[type='text'],
+.form input:not([type]),
 .form textarea {
   font: inherit;
   font-size: 14px;
-  padding: 8px 10px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  padding: 10px 12px;
+  border: 1.5px solid #e6e6e6;
+  border-radius: 10px;
   color: #111;
+  background: #fafafa;
+  transition: border-color 0.15s ease;
 }
 
-.form input[type='color'] {
-  padding: 2px;
-  height: 36px;
-  width: 56px;
+.form input:focus,
+.form textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: #fff;
 }
 
 .form textarea {
   resize: vertical;
-  min-height: 60px;
+  min-height: 64px;
+}
+
+.color-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.form input[type='color'] {
+  padding: 3px;
+  height: 38px;
+  width: 46px;
+  border: 1.5px solid #e6e6e6;
+  border-radius: 10px;
+  background: #fafafa;
+}
+
+.color-value {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 13px;
+  color: #666;
+  text-transform: uppercase;
 }
 
 .form .row {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
-.form .row .counter {
+.form .row .btn {
   flex: 1;
 }
 
 .hint {
-  margin: 16px 0 0 !important;
+  position: relative;
+  margin: 18px 0 0 !important;
   font-size: 11px !important;
-  color: #999 !important;
+  line-height: 1.5 !important;
+  color: #aaa !important;
 }
