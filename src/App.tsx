@@ -12,6 +12,9 @@ function App() {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<MiniAppState | null>(null);
   const [saving, setSaving] = useState(false);
+  const [applying, setApplying] = useState(false);
+  const [bridgeMsg, setBridgeMsg] = useState<string | null>(null);
+  const inHost = typeof window !== 'undefined' && !!window.MiniApp;
 
   useEffect(() => {
     fetch('/api/state')
@@ -33,6 +36,25 @@ function App() {
     setState(draft);
     setSaving(false);
     setEditing(false);
+  }
+
+  // Mini-app -> host-app interaction demo: asks the native side (see
+  // MiniAppShell's handleRequest -> 'updateHostTile') to restyle this mini
+  // app's own tile on the Home/Services screens underneath, live, using
+  // whatever title/color is currently shown on this card.
+  async function applyToHost() {
+    if (!state || !window.MiniApp) return;
+    setApplying(true);
+    setBridgeMsg(null);
+    try {
+      await window.MiniApp.ready();
+      await window.MiniApp.call('updateHostTile', { color: state.accentColor, label: state.title });
+      setBridgeMsg('Đã gửi — đóng mini app để thấy icon đổi.');
+    } catch (e) {
+      setBridgeMsg('Lỗi: ' + (e instanceof Error ? e.message : String(e)));
+    } finally {
+      setApplying(false);
+    }
   }
 
   if (!state || !draft) {
@@ -117,6 +139,17 @@ function App() {
           Sửa ở đây → Lưu → mở lại mini app trong supper app (kéo xuống hoặc bấm nút refresh) là thấy thay
           đổi ngay, không cần deploy lại.
         </p>
+
+        {!editing && (
+          <div className="bridge">
+            <p className="bridge-label">Demo tương tác với app gốc</p>
+            <button className="btn outline" onClick={applyToHost} disabled={!inHost || applying}>
+              {applying ? 'Đang gửi…' : 'Đổi icon app gốc theo card này'}
+            </button>
+            {!inHost && <p className="bridge-msg">Chỉ hoạt động khi mở trong supper app</p>}
+            {bridgeMsg && <p className="bridge-msg">{bridgeMsg}</p>}
+          </div>
+        )}
       </div>
     </div>
   );
