@@ -38,7 +38,14 @@ function App() {
   if (!state || !draft) {
     return (
       <div className="screen">
-        <div className="spinner" />
+        <div className="card">
+          <div className="skel skel-avatar" />
+          <div className="skel skel-badge" />
+          <div className="skel skel-title" />
+          <div className="skel skel-line" />
+          <div className="skel skel-line short" />
+          <div className="skel skel-button" />
+        </div>
       </div>
     );
   }
