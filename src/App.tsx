@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import './App.css';
 import type { OpenCameraResult } from './miniapp';
 
@@ -108,10 +108,12 @@ function App() {
   const [consenting, setConsenting] = useState(false);
   const [consentMsg, setConsentMsg] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  const [loadError, setLoadError] = useState<string | null>(null);
   const inHost = typeof window !== 'undefined' && !!window.MiniApp;
   const fetchedOnce = useRef(false);
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    setLoadError(null);
     fetch(`${API_BASE}/api/state`)
       .then((r) => r.json())
       .then((data: MiniAppState) => {
@@ -119,8 +121,17 @@ function App() {
         setDraft(data);
         fetchedOnce.current = true;
         setNow(Date.now());
+      })
+      .catch((e) => {
+        // No .catch before meant a failed fetch left the page stuck on the
+        // skeleton forever with zero on-screen signal of why.
+        setLoadError(e instanceof Error ? `${e.name}: ${e.message}` : String(e));
       });
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   async function save() {
     if (!draft) return;
@@ -253,6 +264,26 @@ function App() {
     } finally {
       setConsenting(false);
     }
+  }
+
+  if (loadError) {
+    return (
+      <div className="app">
+        <header className="topbar">
+          <span className="topbar-icon">{ICONS.bolt}</span>
+          <span className="topbar-title">Mini App Demo</span>
+        </header>
+        <main className="content">
+          <section className="hero">
+            <div className="row-title">Không tải được nội dung</div>
+            <div className="row-desc">{loadError}</div>
+          </section>
+          <button className="btn primary" onClick={load}>
+            Thử lại
+          </button>
+        </main>
+      </div>
+    );
   }
 
   if (!state || !draft) {
