@@ -107,10 +107,17 @@ function App() {
   const [verifyMsg, setVerifyMsg] = useState<string | null>(null);
   const [consenting, setConsenting] = useState(false);
   const [consentMsg, setConsentMsg] = useState<string | null>(null);
-  const [now, setNow] = useState(() => Date.now());
   const [loadError, setLoadError] = useState<string | null>(null);
   const inHost = typeof window !== 'undefined' && !!window.MiniApp;
   const fetchedOnce = useRef(false);
+  // Pushed down by the host as initialData.bundleUpdatedAt — when the code
+  // currently running was actually downloaded/cached on THIS device, not
+  // when this page last fetched /api/state (that's just this device's
+  // clock at an arbitrary moment, not a meaningful "version" timestamp).
+  // Undefined when opened outside supper-app (no host, no initialData) or
+  // for a first-ever load the host couldn't establish any cache for.
+  const bundleUpdatedAt = (window.MiniApp?.initialData as { bundleUpdatedAt?: number } | undefined)
+    ?.bundleUpdatedAt;
 
   const load = useCallback(() => {
     setLoadError(null);
@@ -120,7 +127,6 @@ function App() {
         setState(data);
         setDraft(data);
         fetchedOnce.current = true;
-        setNow(Date.now());
       })
       .catch((e) => {
         // No .catch before meant a failed fetch left the page stuck on the
@@ -142,7 +148,6 @@ function App() {
       body: JSON.stringify(draft),
     });
     setState(draft);
-    setNow(Date.now());
     setSaving(false);
     setEditing(false);
   }
@@ -344,9 +349,17 @@ function App() {
               {ICONS.pencil}
             </button>
           </div>
-          <p className="hero-meta">
-            Cập nhật lúc {new Date(now).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
-          </p>
+          {bundleUpdatedAt && (
+            <p className="hero-meta">
+              Version cập nhật lúc{' '}
+              {new Date(bundleUpdatedAt).toLocaleString('vi-VN', {
+                day: '2-digit',
+                month: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </p>
+          )}
         </section>
 
         <section className="section">
