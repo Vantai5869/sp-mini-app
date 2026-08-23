@@ -202,6 +202,14 @@
   color: var(--text-muted);
 }
 
+.row-note {
+  margin-top: 6px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  font-style: italic;
+  color: var(--text-faint);
+}
+
 .row-status {
   margin-top: 8px;
   font-size: 12px;

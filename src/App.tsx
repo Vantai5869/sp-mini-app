@@ -395,6 +395,10 @@ function App() {
               <div className="row-body">
                 <div className="row-title">Bật Consent</div>
                 <div className="row-desc">Hiện hộp thoại xin đồng ý do chính supper-app vẽ, không phải mini app.</div>
+                <div className="row-note">
+                  Demo độc lập: kết quả chỉ hiện ở đây, không tự gate hành động nào. Thực tế mini app sẽ
+                  chỉ cho làm tiếp (vd mở camera) khi granted = true.
+                </div>
                 {consentMsg && <div className={statusClass(consentMsg)}>{consentMsg}</div>}
               </div>
               <button className="row-action" onClick={showConsent} disabled={!inHost || consenting}>
