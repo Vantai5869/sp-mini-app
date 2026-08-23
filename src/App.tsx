@@ -64,7 +64,7 @@ const ICONS = {
   ),
 };
 
-const DEMO_LINK_URL = 'https://expo.dev';
+const DEMO_LINK_URL = 'https://www.youtube.com/';
 
 function App() {
   const [state, setState] = useState<MiniAppState | null>(null);
