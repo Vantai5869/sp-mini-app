@@ -62,6 +62,12 @@ const ICONS = {
       />
     </svg>
   ),
+  lock: (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="5" y="11" width="14" height="9" rx="2" />
+      <path d="M8 11V7a4 4 0 0 1 8 0v4" strokeLinecap="round" />
+    </svg>
+  ),
 };
 
 const DEMO_LINK_URL = 'https://www.youtube.com/';
@@ -80,6 +86,8 @@ function App() {
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
   const [opening, setOpening] = useState(false);
   const [linkMsg, setLinkMsg] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyMsg, setVerifyMsg] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const inHost = typeof window !== 'undefined' && !!window.MiniApp;
   const fetchedOnce = useRef(false);
@@ -184,6 +192,24 @@ function App() {
       setLinkMsg('Lỗi: ' + (e instanceof Error ? e.message : String(e)));
     } finally {
       setOpening(false);
+    }
+  }
+
+  // Demo of a fifth host interface: MiniApp.call('verifyPasscode') asks the
+  // host to confirm the user's identity via Face ID/Touch ID/device passcode
+  // before doing something sensitive.
+  async function verifyPasscode() {
+    if (!window.MiniApp) return;
+    setVerifying(true);
+    setVerifyMsg(null);
+    try {
+      await window.MiniApp.ready();
+      await window.MiniApp.call('verifyPasscode', { reason: 'Xác thực để tiếp tục trong Mini App Demo' });
+      setVerifyMsg('Xác thực thành công.');
+    } catch (e) {
+      setVerifyMsg('Lỗi: ' + (e instanceof Error ? e.message : String(e)));
+    } finally {
+      setVerifying(false);
     }
   }
 
@@ -312,6 +338,18 @@ function App() {
               </div>
               <button className="row-action" onClick={openLink} disabled={!inHost || opening}>
                 {opening ? '…' : 'Mở'}
+              </button>
+            </div>
+
+            <div className="row">
+              <div className="row-icon">{ICONS.lock}</div>
+              <div className="row-body">
+                <div className="row-title">Xác thực passcode</div>
+                <div className="row-desc">Xác thực bằng Face ID/Touch ID hoặc mã khoá màn hình của máy.</div>
+                {verifyMsg && <div className="row-status">{verifyMsg}</div>}
+              </div>
+              <button className="row-action" onClick={verifyPasscode} disabled={!inHost || verifying}>
+                {verifying ? '…' : 'Xác thực'}
               </button>
             </div>
           </div>
