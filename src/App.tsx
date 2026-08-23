@@ -48,7 +48,23 @@ const ICONS = {
       <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
     </svg>
   ),
+  download: (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M12 3v12m0 0-4-4m4 4 4-4M5 19h14" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  link: (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path
+        d="M9.5 14.5 14.5 9.5M8 17 5.5 19.5a3 3 0 1 1-4-4L4 13m12-2 2.5-2.5a3 3 0 1 0-4-4L12 7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
 };
+
+const DEMO_LINK_URL = 'https://expo.dev';
 
 function App() {
   const [state, setState] = useState<MiniAppState | null>(null);
@@ -58,8 +74,12 @@ function App() {
   const [applying, setApplying] = useState(false);
   const [bridgeMsg, setBridgeMsg] = useState<string | null>(null);
   const [capturing, setCapturing] = useState(false);
-  const [photo, setPhoto] = useState<string | null>(null);
+  const [cameraResult, setCameraResult] = useState<OpenCameraResult | null>(null);
   const [cameraMsg, setCameraMsg] = useState<string | null>(null);
+  const [savingImage, setSavingImage] = useState(false);
+  const [saveMsg, setSaveMsg] = useState<string | null>(null);
+  const [opening, setOpening] = useState(false);
+  const [linkMsg, setLinkMsg] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const inHost = typeof window !== 'undefined' && !!window.MiniApp;
   const fetchedOnce = useRef(false);
@@ -122,13 +142,48 @@ function App() {
       if (result.cancelled) {
         setCameraMsg('Đã huỷ chụp ảnh.');
       } else {
-        setPhoto(result.base64 ? `data:image/jpeg;base64,${result.base64}` : result.uri ?? null);
+        setCameraResult(result);
+        setSaveMsg(null);
         setCameraMsg(null);
       }
     } catch (e) {
       setCameraMsg('Lỗi: ' + (e instanceof Error ? e.message : String(e)));
     } finally {
       setCapturing(false);
+    }
+  }
+
+  // Demo of a third host interface: MiniApp.call('saveImage') persists the
+  // photo just captured above into the device's photo library — reuses the
+  // native `uri` openCamera returned rather than re-encoding the base64.
+  async function saveImage() {
+    if (!window.MiniApp || !cameraResult?.uri) return;
+    setSavingImage(true);
+    setSaveMsg(null);
+    try {
+      await window.MiniApp.ready();
+      await window.MiniApp.call('saveImage', { uri: cameraResult.uri });
+      setSaveMsg('Đã lưu vào thư viện ảnh.');
+    } catch (e) {
+      setSaveMsg('Lỗi: ' + (e instanceof Error ? e.message : String(e)));
+    } finally {
+      setSavingImage(false);
+    }
+  }
+
+  // Demo of a fourth host interface: MiniApp.call('openLink') opens an
+  // external http(s) URL through the host's system browser.
+  async function openLink() {
+    if (!window.MiniApp) return;
+    setOpening(true);
+    setLinkMsg(null);
+    try {
+      await window.MiniApp.ready();
+      await window.MiniApp.call('openLink', { url: DEMO_LINK_URL });
+    } catch (e) {
+      setLinkMsg('Lỗi: ' + (e instanceof Error ? e.message : String(e)));
+    } finally {
+      setOpening(false);
     }
   }
 
@@ -215,11 +270,48 @@ function App() {
               <div className="row-body">
                 <div className="row-title">Mở camera</div>
                 <div className="row-desc">Mở camera native của supper-app để chụp ảnh.</div>
-                {photo && <img src={photo} alt="Ảnh vừa chụp" className="row-photo" />}
+                {cameraResult && (
+                  <img
+                    src={
+                      cameraResult.base64
+                        ? `data:image/jpeg;base64,${cameraResult.base64}`
+                        : cameraResult.uri
+                    }
+                    alt="Ảnh vừa chụp"
+                    className="row-photo"
+                  />
+                )}
                 {cameraMsg && <div className="row-status">{cameraMsg}</div>}
               </div>
               <button className="row-action" onClick={openCamera} disabled={!inHost || capturing}>
-                {capturing ? '…' : photo ? 'Chụp lại' : 'Mở'}
+                {capturing ? '…' : cameraResult ? 'Chụp lại' : 'Mở'}
+              </button>
+            </div>
+
+            <div className="row">
+              <div className="row-icon">{ICONS.download}</div>
+              <div className="row-body">
+                <div className="row-title">Lưu ảnh</div>
+                <div className="row-desc">Lưu ảnh vừa chụp ở trên vào thư viện ảnh của máy.</div>
+                {saveMsg && <div className="row-status">{saveMsg}</div>}
+              </div>
+              <button
+                className="row-action"
+                onClick={saveImage}
+                disabled={!inHost || !cameraResult?.uri || savingImage}>
+                {savingImage ? '…' : 'Lưu'}
+              </button>
+            </div>
+
+            <div className="row">
+              <div className="row-icon">{ICONS.link}</div>
+              <div className="row-body">
+                <div className="row-title">Mở link</div>
+                <div className="row-desc">Mở {DEMO_LINK_URL} bằng trình duyệt hệ thống.</div>
+                {linkMsg && <div className="row-status">{linkMsg}</div>}
+              </div>
+              <button className="row-action" onClick={openLink} disabled={!inHost || opening}>
+                {opening ? '…' : 'Mở'}
               </button>
             </div>
           </div>
