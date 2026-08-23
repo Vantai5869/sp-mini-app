@@ -77,6 +77,11 @@ const ICONS = {
 };
 
 const DEMO_LINK_URL = 'https://www.youtube.com/';
+// Absolute, not relative — this page can be loaded from a local file:// copy
+// cached inside supper-app (see lib/miniAppBundleCache.ts there), where a
+// relative "/api/state" would resolve against the filesystem instead of the
+// real backend.
+const API_BASE = 'https://sp-mini-app.vercel.app';
 
 function statusClass(msg: string): string {
   if (msg.startsWith('Lỗi')) return 'row-status error';
@@ -107,7 +112,7 @@ function App() {
   const fetchedOnce = useRef(false);
 
   useEffect(() => {
-    fetch('/api/state')
+    fetch(`${API_BASE}/api/state`)
       .then((r) => r.json())
       .then((data: MiniAppState) => {
         setState(data);
@@ -120,7 +125,7 @@ function App() {
   async function save() {
     if (!draft) return;
     setSaving(true);
-    await fetch('/api/state', {
+    await fetch(`${API_BASE}/api/state`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(draft),
