@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import './App.css';
+import type { OpenCameraResult } from './miniapp';
 
 type MiniAppState = {
   title: string;
@@ -14,6 +15,9 @@ function App() {
   const [saving, setSaving] = useState(false);
   const [applying, setApplying] = useState(false);
   const [bridgeMsg, setBridgeMsg] = useState<string | null>(null);
+  const [capturing, setCapturing] = useState(false);
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [cameraMsg, setCameraMsg] = useState<string | null>(null);
   const inHost = typeof window !== 'undefined' && !!window.MiniApp;
 
   useEffect(() => {
@@ -54,6 +58,29 @@ function App() {
       setBridgeMsg('Lỗi: ' + (e instanceof Error ? e.message : String(e)));
     } finally {
       setApplying(false);
+    }
+  }
+
+  // Demo of a second host interface: MiniApp.call('openCamera') opens the
+  // supper-app's real native camera (not a WebView getUserMedia preview)
+  // and hands back the captured photo — see MiniAppShell.tsx's handleRequest
+  // there for the native side.
+  async function openCamera() {
+    if (!window.MiniApp) return;
+    setCapturing(true);
+    setCameraMsg(null);
+    try {
+      await window.MiniApp.ready();
+      const result = (await window.MiniApp.call('openCamera')) as OpenCameraResult;
+      if (result.cancelled) {
+        setCameraMsg('Đã huỷ chụp ảnh.');
+      } else {
+        setPhoto(result.base64 ? `data:image/jpeg;base64,${result.base64}` : result.uri ?? null);
+      }
+    } catch (e) {
+      setCameraMsg('Lỗi: ' + (e instanceof Error ? e.message : String(e)));
+    } finally {
+      setCapturing(false);
     }
   }
 
@@ -148,6 +175,16 @@ function App() {
             </button>
             {!inHost && <p className="bridge-msg">Chỉ hoạt động khi mở trong supper app</p>}
             {bridgeMsg && <p className="bridge-msg">{bridgeMsg}</p>}
+
+            <p className="bridge-label" style={{ marginTop: 18 }}>
+              Interface: Mở camera
+            </p>
+            {photo && <img src={photo} alt="Ảnh vừa chụp" className="camera-preview" />}
+            <button className="btn outline" onClick={openCamera} disabled={!inHost || capturing}>
+              {capturing ? 'Đang mở camera…' : photo ? 'Chụp lại' : 'Mở camera'}
+            </button>
+            {!inHost && <p className="bridge-msg">Chỉ hoạt động khi mở trong supper app</p>}
+            {cameraMsg && <p className="bridge-msg">{cameraMsg}</p>}
           </div>
         )}
       </div>

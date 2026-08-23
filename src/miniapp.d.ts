@@ -12,3 +12,14 @@ declare global {
     };
   }
 }
+
+// Result shape of MiniApp.call('openCamera', ...) — one of the interfaces
+// the host (supper-app) exposes to every mini app, opening the real native
+// camera and returning the captured photo (see MiniAppShell.tsx there).
+export type OpenCameraResult = {
+  cancelled: boolean;
+  uri?: string;
+  width?: number;
+  height?: number;
+  base64?: string | null;
+};
