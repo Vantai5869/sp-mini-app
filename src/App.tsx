@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './App.css';
 import type { OpenCameraResult } from './miniapp';
 
@@ -6,6 +6,48 @@ type MiniAppState = {
   title: string;
   subtitle: string;
   accentColor: string;
+};
+
+const ICONS = {
+  bolt: (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M13 2 L4 14 h6 l-1 8 9-12h-6z" strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  ),
+  pencil: (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+      <path
+        d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
+  palette: (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path
+        d="M12 2a10 10 0 1 0 0 20c1.5 0 2-1 2-2s-.5-1.2-.5-2 .8-1.5 2-1.5H17a4 4 0 0 0 4-4c0-5-4.5-10.5-9-10.5Z"
+        strokeLinejoin="round"
+      />
+      <circle cx="7.5" cy="11" r="1.2" fill="currentColor" stroke="none" />
+      <circle cx="10.5" cy="7" r="1.2" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="8" r="1.2" fill="currentColor" stroke="none" />
+    </svg>
+  ),
+  camera: (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path
+        d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2l1-2h7l1 2h2A1.5 1.5 0 0 1 20 8.5v9A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 4 17.5v-9Z"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="13" r="3.2" />
+    </svg>
+  ),
+  close: (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+    </svg>
+  ),
 };
 
 function App() {
@@ -18,7 +60,9 @@ function App() {
   const [capturing, setCapturing] = useState(false);
   const [photo, setPhoto] = useState<string | null>(null);
   const [cameraMsg, setCameraMsg] = useState<string | null>(null);
+  const [now, setNow] = useState(() => Date.now());
   const inHost = typeof window !== 'undefined' && !!window.MiniApp;
+  const fetchedOnce = useRef(false);
 
   useEffect(() => {
     fetch('/api/state')
@@ -26,6 +70,8 @@ function App() {
       .then((data: MiniAppState) => {
         setState(data);
         setDraft(data);
+        fetchedOnce.current = true;
+        setNow(Date.now());
       });
   }, []);
 
@@ -38,6 +84,7 @@ function App() {
       body: JSON.stringify(draft),
     });
     setState(draft);
+    setNow(Date.now());
     setSaving(false);
     setEditing(false);
   }
@@ -76,6 +123,7 @@ function App() {
         setCameraMsg('Đã huỷ chụp ảnh.');
       } else {
         setPhoto(result.base64 ? `data:image/jpeg;base64,${result.base64}` : result.uri ?? null);
+        setCameraMsg(null);
       }
     } catch (e) {
       setCameraMsg('Lỗi: ' + (e instanceof Error ? e.message : String(e)));
@@ -86,108 +134,153 @@ function App() {
 
   if (!state || !draft) {
     return (
-      <div className="screen">
-        <div className="card">
-          <div className="skel skel-avatar" />
-          <div className="skel skel-badge" />
-          <div className="skel skel-title" />
-          <div className="skel skel-line" />
-          <div className="skel skel-line short" />
-          <div className="skel skel-button" />
-        </div>
+      <div className="app">
+        <header className="topbar">
+          <div className="topbar-icon skel skel-round" />
+          <div className="skel skel-topbar-title" />
+        </header>
+        <main className="content">
+          <section className="hero">
+            <div className="skel skel-hero-title" />
+            <div className="skel skel-hero-line" />
+          </section>
+          <section className="section">
+            <div className="skel skel-section-title" />
+            <div className="list">
+              <div className="row row-skel">
+                <div className="skel skel-row-icon" />
+                <div className="row-body">
+                  <div className="skel skel-row-title" />
+                  <div className="skel skel-row-desc" />
+                </div>
+              </div>
+              <div className="row row-skel">
+                <div className="skel skel-row-icon" />
+                <div className="row-body">
+                  <div className="skel skel-row-title" />
+                  <div className="skel skel-row-desc" />
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="screen" style={{ '--accent': state.accentColor } as React.CSSProperties}>
-      <div className="card">
-        <div className="glow" />
-
-        <div className="avatar">
-          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" strokeWidth="2">
-            <path d="M13 2 L4 14 h6 l-1 8 9-12h-6z" strokeLinejoin="round" strokeLinecap="round" />
-          </svg>
-        </div>
-
-        <span className="badge">
-          <span className="dot" />
-          Live · cập nhật {new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+    <div className="app" style={{ '--accent': state.accentColor } as React.CSSProperties}>
+      <header className="topbar">
+        <span className="topbar-icon">{ICONS.bolt}</span>
+        <span className="topbar-title">Mini App Demo</span>
+        <span className="live">
+          <span className="live-dot" />
+          Live
         </span>
+      </header>
 
-        <h1>{state.title}</h1>
-        <p>{state.subtitle}</p>
+      <main className="content">
+        <section className="hero">
+          <div className="hero-row">
+            <div className="hero-text">
+              <h1>{state.title}</h1>
+              <p>{state.subtitle}</p>
+            </div>
+            <button className="icon-btn" onClick={() => setEditing(true)} aria-label="Chỉnh sửa nội dung">
+              {ICONS.pencil}
+            </button>
+          </div>
+          <p className="hero-meta">
+            Cập nhật lúc {new Date(now).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+          </p>
+        </section>
 
-        {editing ? (
-          <div className="form">
-            <label>
-              Tiêu đề
-              <input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
-            </label>
-            <label>
-              Mô tả
-              <textarea
-                value={draft.subtitle}
-                onChange={(e) => setDraft({ ...draft, subtitle: e.target.value })}
-              />
-            </label>
-            <label>
-              Màu chủ đạo
-              <div className="color-row">
-                <input
-                  type="color"
-                  value={draft.accentColor}
-                  onChange={(e) => setDraft({ ...draft, accentColor: e.target.value })}
-                />
-                <span className="color-value">{draft.accentColor}</span>
-              </div>
-            </label>
+        <section className="section">
+          <h2 className="section-title">SDK Demo · Interface từ supper-app</h2>
+          <div className="list">
             <div className="row">
-              <button
-                className="btn ghost"
-                onClick={() => {
-                  setDraft(state);
-                  setEditing(false);
-                }}>
-                Huỷ
+              <div className="row-icon">{ICONS.palette}</div>
+              <div className="row-body">
+                <div className="row-title">Cập nhật tile app gốc</div>
+                <div className="row-desc">Đổi màu/tên icon của mini app này trên màn hình chính, ngay khi đang mở.</div>
+                {bridgeMsg && <div className="row-status">{bridgeMsg}</div>}
+              </div>
+              <button className="row-action" onClick={applyToHost} disabled={!inHost || applying}>
+                {applying ? '…' : 'Áp dụng'}
               </button>
-              <button className="btn primary" onClick={save} disabled={saving}>
-                {saving ? 'Đang lưu…' : 'Lưu thay đổi'}
+            </div>
+
+            <div className="row">
+              <div className="row-icon">{ICONS.camera}</div>
+              <div className="row-body">
+                <div className="row-title">Mở camera</div>
+                <div className="row-desc">Mở camera native của supper-app để chụp ảnh.</div>
+                {photo && <img src={photo} alt="Ảnh vừa chụp" className="row-photo" />}
+                {cameraMsg && <div className="row-status">{cameraMsg}</div>}
+              </div>
+              <button className="row-action" onClick={openCamera} disabled={!inHost || capturing}>
+                {capturing ? '…' : photo ? 'Chụp lại' : 'Mở'}
               </button>
             </div>
           </div>
-        ) : (
-          <button className="btn primary" onClick={() => setEditing(true)}>
-            Chỉnh sửa
-          </button>
-        )}
+          {!inHost && <p className="hint">Các interface trên chỉ hoạt động khi mở trong supper app.</p>}
+        </section>
 
         <p className="hint">
-          Sửa ở đây → Lưu → mở lại mini app trong supper app (kéo xuống hoặc bấm nút refresh) là thấy thay
-          đổi ngay, không cần deploy lại.
+          Sửa nội dung ở đây → Lưu → mở lại mini app trong supper app (kéo xuống hoặc bấm nút refresh) là
+          thấy thay đổi ngay, không cần deploy lại.
         </p>
+      </main>
 
-        {!editing && (
-          <div className="bridge">
-            <p className="bridge-label">Demo tương tác với app gốc</p>
-            <button className="btn outline" onClick={applyToHost} disabled={!inHost || applying}>
-              {applying ? 'Đang gửi…' : 'Đổi icon app gốc theo card này'}
-            </button>
-            {!inHost && <p className="bridge-msg">Chỉ hoạt động khi mở trong supper app</p>}
-            {bridgeMsg && <p className="bridge-msg">{bridgeMsg}</p>}
-
-            <p className="bridge-label" style={{ marginTop: 18 }}>
-              Interface: Mở camera
-            </p>
-            {photo && <img src={photo} alt="Ảnh vừa chụp" className="camera-preview" />}
-            <button className="btn outline" onClick={openCamera} disabled={!inHost || capturing}>
-              {capturing ? 'Đang mở camera…' : photo ? 'Chụp lại' : 'Mở camera'}
-            </button>
-            {!inHost && <p className="bridge-msg">Chỉ hoạt động khi mở trong supper app</p>}
-            {cameraMsg && <p className="bridge-msg">{cameraMsg}</p>}
+      {editing && (
+        <div className="sheet-backdrop" onClick={() => setEditing(false)}>
+          <div className="sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="sheet-header">
+              <h3>Chỉnh sửa nội dung</h3>
+              <button className="icon-btn" onClick={() => setEditing(false)} aria-label="Đóng">
+                {ICONS.close}
+              </button>
+            </div>
+            <div className="form">
+              <label>
+                Tiêu đề
+                <input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
+              </label>
+              <label>
+                Mô tả
+                <textarea
+                  value={draft.subtitle}
+                  onChange={(e) => setDraft({ ...draft, subtitle: e.target.value })}
+                />
+              </label>
+              <label>
+                Màu chủ đạo
+                <div className="color-row">
+                  <input
+                    type="color"
+                    value={draft.accentColor}
+                    onChange={(e) => setDraft({ ...draft, accentColor: e.target.value })}
+                  />
+                  <span className="color-value">{draft.accentColor}</span>
+                </div>
+              </label>
+              <div className="row buttons">
+                <button
+                  className="btn ghost"
+                  onClick={() => {
+                    setDraft(state);
+                    setEditing(false);
+                  }}>
+                  Huỷ
+                </button>
+                <button className="btn primary" onClick={save} disabled={saving}>
+                  {saving ? 'Đang lưu…' : 'Lưu thay đổi'}
+                </button>
+              </div>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
