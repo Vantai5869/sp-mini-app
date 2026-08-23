@@ -68,13 +68,19 @@ const ICONS = {
       <path d="M8 11V7a4 4 0 0 1 8 0v4" strokeLinecap="round" />
     </svg>
   ),
+  check: (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M12 2 4 5.5v6c0 5 3.4 8.7 8 9.5 4.6-.8 8-4.5 8-9.5v-6L12 2Z" strokeLinejoin="round" />
+      <path d="m8.5 12 2.5 2.5 4.5-5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
 };
 
 const DEMO_LINK_URL = 'https://www.youtube.com/';
 
 function statusClass(msg: string): string {
   if (msg.startsWith('Lỗi')) return 'row-status error';
-  if (msg.startsWith('Đã huỷ')) return 'row-status';
+  if (msg.startsWith('Đã huỷ') || msg.startsWith('Đã từ chối')) return 'row-status';
   return 'row-status success';
 }
 
@@ -94,6 +100,8 @@ function App() {
   const [linkMsg, setLinkMsg] = useState<string | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [verifyMsg, setVerifyMsg] = useState<string | null>(null);
+  const [consenting, setConsenting] = useState(false);
+  const [consentMsg, setConsentMsg] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const inHost = typeof window !== 'undefined' && !!window.MiniApp;
   const fetchedOnce = useRef(false);
@@ -216,6 +224,29 @@ function App() {
       setVerifyMsg('Lỗi: ' + (e instanceof Error ? e.message : String(e)));
     } finally {
       setVerifying(false);
+    }
+  }
+
+  // Demo of a sixth host interface: MiniApp.call('showConsent') asks the
+  // host to draw a NATIVE confirmation dialog (not something this page
+  // renders itself) before doing something that needs the user's explicit
+  // agreement.
+  async function showConsent() {
+    if (!window.MiniApp) return;
+    setConsenting(true);
+    setConsentMsg(null);
+    try {
+      await window.MiniApp.ready();
+      const result = (await window.MiniApp.call('showConsent', {
+        title: 'Mini App Demo muốn',
+        message: 'Ứng dụng xin phép được:',
+        items: ['Đọc thông tin hiển thị trên trang này', 'Gửi yêu cầu tới supper-app qua bridge'],
+      })) as { granted: boolean };
+      setConsentMsg(result.granted ? 'Đã đồng ý.' : 'Đã từ chối.');
+    } catch (e) {
+      setConsentMsg('Lỗi: ' + (e instanceof Error ? e.message : String(e)));
+    } finally {
+      setConsenting(false);
     }
   }
 
@@ -356,6 +387,18 @@ function App() {
               </div>
               <button className="row-action" onClick={verifyPasscode} disabled={!inHost || verifying}>
                 {verifying ? '…' : 'Xác thực'}
+              </button>
+            </div>
+
+            <div className="row">
+              <div className="row-icon">{ICONS.check}</div>
+              <div className="row-body">
+                <div className="row-title">Bật Consent</div>
+                <div className="row-desc">Hiện hộp thoại xin đồng ý do chính supper-app vẽ, không phải mini app.</div>
+                {consentMsg && <div className={statusClass(consentMsg)}>{consentMsg}</div>}
+              </div>
+              <button className="row-action" onClick={showConsent} disabled={!inHost || consenting}>
+                {consenting ? '…' : 'Hỏi'}
               </button>
             </div>
           </div>
