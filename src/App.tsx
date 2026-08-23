@@ -72,6 +72,12 @@ const ICONS = {
 
 const DEMO_LINK_URL = 'https://www.youtube.com/';
 
+function statusClass(msg: string): string {
+  if (msg.startsWith('Lỗi')) return 'row-status error';
+  if (msg.startsWith('Đã huỷ')) return 'row-status';
+  return 'row-status success';
+}
+
 function App() {
   const [state, setState] = useState<MiniAppState | null>(null);
   const [editing, setEditing] = useState(false);
@@ -284,7 +290,7 @@ function App() {
               <div className="row-body">
                 <div className="row-title">Cập nhật tile app gốc</div>
                 <div className="row-desc">Đổi màu/tên icon của mini app này trên màn hình chính, ngay khi đang mở.</div>
-                {bridgeMsg && <div className="row-status">{bridgeMsg}</div>}
+                {bridgeMsg && <div className={statusClass(bridgeMsg)}>{bridgeMsg}</div>}
               </div>
               <button className="row-action" onClick={applyToHost} disabled={!inHost || applying}>
                 {applying ? '…' : 'Áp dụng'}
@@ -307,7 +313,7 @@ function App() {
                     className="row-photo"
                   />
                 )}
-                {cameraMsg && <div className="row-status">{cameraMsg}</div>}
+                {cameraMsg && <div className={statusClass(cameraMsg)}>{cameraMsg}</div>}
               </div>
               <button className="row-action" onClick={openCamera} disabled={!inHost || capturing}>
                 {capturing ? '…' : cameraResult ? 'Chụp lại' : 'Mở'}
@@ -319,7 +325,7 @@ function App() {
               <div className="row-body">
                 <div className="row-title">Lưu ảnh</div>
                 <div className="row-desc">Lưu ảnh vừa chụp ở trên vào thư viện ảnh của máy.</div>
-                {saveMsg && <div className="row-status">{saveMsg}</div>}
+                {saveMsg && <div className={statusClass(saveMsg)}>{saveMsg}</div>}
               </div>
               <button
                 className="row-action"
@@ -334,7 +340,7 @@ function App() {
               <div className="row-body">
                 <div className="row-title">Mở link</div>
                 <div className="row-desc">Mở {DEMO_LINK_URL} bằng trình duyệt hệ thống.</div>
-                {linkMsg && <div className="row-status">{linkMsg}</div>}
+                {linkMsg && <div className={statusClass(linkMsg)}>{linkMsg}</div>}
               </div>
               <button className="row-action" onClick={openLink} disabled={!inHost || opening}>
                 {opening ? '…' : 'Mở'}
@@ -346,7 +352,7 @@ function App() {
               <div className="row-body">
                 <div className="row-title">Xác thực passcode</div>
                 <div className="row-desc">Xác thực bằng Face ID/Touch ID hoặc mã khoá màn hình của máy.</div>
-                {verifyMsg && <div className="row-status">{verifyMsg}</div>}
+                {verifyMsg && <div className={statusClass(verifyMsg)}>{verifyMsg}</div>}
               </div>
               <button className="row-action" onClick={verifyPasscode} disabled={!inHost || verifying}>
                 {verifying ? '…' : 'Xác thực'}
