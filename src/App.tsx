@@ -139,6 +139,17 @@ function App() {
     load();
   }, [load]);
 
+  // App Shell split: the host only reloads this whole page when the CODE
+  // actually changed (see lib/miniAppBundleCache.ts). DATA freshness is
+  // this app's own job, every time it's reopened — onShow fires on every
+  // reopen from the host's pool (not the first load, that's the effect
+  // above). Since `state`/`draft` are already set from the previous load,
+  // calling load() again here just refreshes them in place — no skeleton
+  // flash, no full reload, only the data itself changes.
+  useEffect(() => {
+    window.MiniApp?.onShow(load);
+  }, [load]);
+
   async function save() {
     if (!draft) return;
     setSaving(true);
