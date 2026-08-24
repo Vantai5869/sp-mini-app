@@ -331,7 +331,7 @@ function App() {
     <div className="app" style={{ '--accent': state.accentColor } as React.CSSProperties}>
       <header className="topbar">
         <span className="topbar-icon">{ICONS.bolt}</span>
-        <span className="topbar-title">Mini App Demo</span>
+        <span className="topbar-title">Mini App V1.</span>
         <span className="live">
           <span className="live-dot" />
           Live
