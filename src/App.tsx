@@ -276,7 +276,7 @@ function App() {
       <div className="app">
         <header className="topbar">
           <span className="topbar-icon">{ICONS.bolt}</span>
-          <span className="topbar-title">Mini App Demo</span>
+          <span className="topbar-title">Mini App V1</span>
         </header>
         <main className="content">
           <section className="hero">
